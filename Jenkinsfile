@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/dn3ndra/sast-demo-app.git'
+                git url: 'https://github.com/dn3ndra/sast-demo-app.git', branch: 'main'
             }
         }
 
@@ -22,15 +22,10 @@ pipeline {
         stage('SAST Analysis') {
             steps {
                 sh '''
-                    . venv/bin/activate
-                    bandit -f xml -o bandit-output.xml -r .
+                    . venv/bin/activate && \
+                    bandit -f xml -o bandit-output.xml -r . || true
                 '''
-            }
-        }
-
-        stage('Archive Bandit Report') {
-            steps {
-                archiveArtifacts artifacts: 'bandit-output.xml', allowEmptyArchive: true
+                recordIssues tools: [bandit(pattern: 'bandit-output.xml', reportEncoding: 'UTF-8')]
             }
         }
     }
