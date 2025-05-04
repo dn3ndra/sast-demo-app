@@ -4,9 +4,10 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/dn3ndra/sast-demo-app.git', branch: 'main'
+                git 'https://github.com/dn3ndra/sast-demo-app.git'
             }
         }
+
         stage('Setup Python Environment') {
             steps {
                 sh '''
@@ -17,13 +18,19 @@ pipeline {
                 '''
             }
         }
+
         stage('SAST Analysis') {
             steps {
                 sh '''
                     . venv/bin/activate
-                    bandit -f xml -o bandit-output.xml -r . || true
+                    bandit -f xml -o bandit-output.xml -r .
                 '''
-                recordIssues tools: [bandit(pattern: 'bandit-output.xml')]
+            }
+        }
+
+        stage('Archive Bandit Report') {
+            steps {
+                archiveArtifacts artifacts: 'bandit-output.xml', allowEmptyArchive: true
             }
         }
     }
