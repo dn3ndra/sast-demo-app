@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/maruwrks/sast-demo-app.git', branch: 'main'
+                git url: 'https://github.com/dn3ndra/sast-demo-app.git', branch: 'main'
             }
         }
 
@@ -25,16 +25,16 @@ pipeline {
                     . venv/bin/activate
                     bandit -f xml -o bandit-output.xml -r . || true
                 '''
+                recordIssues(
+                    tool: issues(name: 'Bandit', pattern: 'bandit-output.xml', reportEncoding: 'UTF-8')
+                )
+                archiveArtifacts artifacts: 'bandit-output.xml', fingerprint: true
             }
         }
     }
 
     post {
         always {
-            recordIssues(
-                tool: bandit(pattern: 'bandit-output.xml')
-            )
-            archiveArtifacts artifacts: 'bandit-output.xml', fingerprint: true
             echo 'Pipeline finished.'
         }
         failure {
