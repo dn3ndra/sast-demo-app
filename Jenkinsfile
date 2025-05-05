@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/dn3ndra/sast-demo-app.git', branch: 'main'
+                git 'https://github.com/dn3ndra/sast-demo-app.git'
             }
         }
 
@@ -27,9 +27,16 @@ pipeline {
             steps {
                 sh '''
                     . ${VENV_DIR}/bin/activate
-                    bandit -f xml -o bandit-output.xml -r . || true
+                    bandit -r . -f xml -o bandit-output.xml || true
                 '''
-                recordIssues tools: [bandit(pattern: 'bandit-output.xml')]
+            }
+        }
+
+        stage('Publish Results') {
+            steps {
+                // Jika kamu ingin menampilkan hasil Bandit di Jenkins, gunakan plugin seperti Warnings NG
+                // Contoh konfigurasi dengan Warnings NG plugin (opsional):
+                recordIssues(tools: [bandit(pattern: 'bandit-output.xml')])
             }
         }
     }
