@@ -23,12 +23,10 @@ pipeline {
             steps {
                 sh '''
                     . venv/bin/activate
-                    bandit -f xml -o bandit-output.xml -r . || true
+                    bandit -f sarif -o bandit-output.sarif -r .
                 '''
-                recordIssues(
-                    tool: issues(name: 'Bandit', pattern: 'bandit-output.xml', reportEncoding: 'UTF-8')
-                )
-                archiveArtifacts artifacts: 'bandit-output.xml', fingerprint: true
+                recordIssues tools: [sarif(pattern: 'bandit-output.sarif')]
+                archiveArtifacts artifacts: 'bandit-output.sarif', fingerprint: true
             }
         }
     }
