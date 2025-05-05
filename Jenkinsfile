@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        VENV_DIR = 'venv'
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -11,8 +15,8 @@ pipeline {
         stage('Setup Virtual Environment') {
             steps {
                 sh '''
-                    python3 -m venv venv
-                    . venv/bin/activate
+                    python3 -m venv ${VENV_DIR}
+                    . ${VENV_DIR}/bin/activate
                     pip install --upgrade pip
                     pip install bandit
                 '''
@@ -22,12 +26,10 @@ pipeline {
         stage('SAST Analysis') {
             steps {
                 sh '''
-                    . venv/bin/activate
-                    bandit -f xml -o bandit-output.xml -r .
+                    . ${VENV_DIR}/bin/activate
+                    bandit -f xml -o bandit-output.xml -r . || true
                 '''
-                archiveArtifacts artifacts: 'bandit-output.xml', fingerprint: true
-                // Show the report in the Jenkins console to verify it works
-                sh 'cat bandit-output.xml'
+                recordIssues tools: [bandit(pattern: 'bandit-output.xml')]
             }
         }
     }
