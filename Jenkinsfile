@@ -4,11 +4,11 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/dn3ndra/sast-demo-app.git', branch: 'main'
+                git url: 'https://github.com/dn3ndra/sast-demo-app.git', branch: 'master'
             }
         }
 
-        stage('Setup Python Environment') {
+        stage('Setup Virtual Environment') {
             steps {
                 sh '''
                     python3 -m venv venv
@@ -22,11 +22,23 @@ pipeline {
         stage('SAST Analysis') {
             steps {
                 sh '''
-                    . venv/bin/activate && \
+                    . venv/bin/activate
                     bandit -f xml -o bandit-output.xml -r . || true
                 '''
-                recordIssues tools: [bandit(pattern: 'bandit-output.xml')]
+                recordIssues(
+                    tool: issues(name: 'Bandit', pattern: 'bandit-output.xml', reportEncoding: 'UTF-8')
+                )
+                archiveArtifacts artifacts: 'bandit-output.xml', fingerprint: true
             }
+        }
+    }
+
+    post {
+        always {
+            echo 'Pipeline finished.'
+        }
+        failure {
+            echo 'Pipeline failed.'
         }
     }
 }
