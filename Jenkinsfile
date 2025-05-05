@@ -32,7 +32,7 @@ pipeline {
     post {
         always {
             recordIssues(
-                tool: issues(name: 'Bandit', pattern: 'bandit-output.xml', reportEncoding: 'UTF-8')
+                tool: bandit(pattern: 'bandit-output.xml')
             )
             archiveArtifacts artifacts: 'bandit-output.xml', fingerprint: true
             echo 'Pipeline finished.'
