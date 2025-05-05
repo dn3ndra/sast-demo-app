@@ -23,10 +23,11 @@ pipeline {
             steps {
                 sh '''
                     . venv/bin/activate
-                    bandit -f sarif -o bandit-output.sarif -r .
+                    bandit -f xml -o bandit-output.xml -r .
                 '''
-                recordIssues tools: [sarif(pattern: 'bandit-output.sarif')]
-                archiveArtifacts artifacts: 'bandit-output.sarif', fingerprint: true
+                archiveArtifacts artifacts: 'bandit-output.xml', fingerprint: true
+                // Show the report in the Jenkins console to verify it works
+                sh 'cat bandit-output.xml'
             }
         }
     }
