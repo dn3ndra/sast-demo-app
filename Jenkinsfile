@@ -1,18 +1,22 @@
 pipeline {
     agent any
 
+    environment {
+        VENV_DIR = 'venv'
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/dn3ndra/sast-demo-app.git', branch: 'main'
+                git 'https://github.com/dn3ndra/sast-demo-app.git'
             }
         }
 
         stage('Setup Virtual Environment') {
             steps {
                 sh '''
-                    python3 -m venv venv
-                    . venv/bin/activate
+                    python3 -m venv ${VENV_DIR}
+                    . ${VENV_DIR}/bin/activate
                     pip install --upgrade pip
                     pip install bandit
                 '''
@@ -22,11 +26,15 @@ pipeline {
         stage('SAST Analysis') {
             steps {
                 sh '''
-                    . venv/bin/activate
-                    bandit -f xml -o bandit-output.xml -r . || true
+                    . ${VENV_DIR}/bin/activate
+                    bandit -f xml -o bandit-output.xml -r .
                 '''
-                recordIssues tools: [bandit(pattern: 'bandit-output.xml')]
-                archiveArtifacts artifacts: 'bandit-output.xml', fingerprint: true
+            }
+        }
+
+        stage('Archive Bandit Report') {
+            steps {
+                archiveArtifacts artifacts: 'bandit-output.xml', onlyIfSuccessful: true
             }
         }
     }
